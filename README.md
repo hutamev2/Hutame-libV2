@@ -149,6 +149,12 @@ Tema anahtarları: `Background`, `Sidebar`, `Surface`, `Hover`, `Border`, `Text`
 
 Örnek hub yalnızca arayüz davranışını gösterir; oyun otomasyonu veya sunucu değiştirme işlemi içermez. Bu işlemleri kendi callback'lerinize bağlayın.
 
+## GPO örnekleri
+
+`examples/GPOFishHub.lua`, otomatik balık tutma ve Common Fish Bait stok yönetimini; `examples/GPOAutoKnockDoor.lua` ise Spooksville kapı etkinliğini gösterir. İki örnek de Hutame-libV2 arayüzünü public `main` adresinden yükler, tekrar çalıştırıldığında eski penceresini kapatır ve otomasyonu kapalı başlatır.
+
+Kodlar geliştirmeyi kolaylaştırmak için `CONFIG`, oyun yardımcıları, otomasyon döngüsü ve arayüz bölümlerine ayrılmıştır. Balık örneğinde oltanın kuşanılmış, kapı örneğinde Candy Corn Basket'ın envanterde olması gerekir.
+
 ## Studio kontrol listesi
 
 Play modunda sekmeleri değiştirin; toggle, slider, dropdown ve input değerlerini kontrol edin. Açık dropdown ile sayfayı kaydırın. Input odaktayken RightControl'ün pencereyi kapatmadığını doğrulayın. Pencereyi sürükleyin, gizleyip açın, ekran boyutunu değiştirin. Device Emulator ile dokunmatik slider ve sürüklemeyi deneyin. Son olarak kırmızı kapatma düğmesinin UI'yi kaldırdığını kontrol edin.
