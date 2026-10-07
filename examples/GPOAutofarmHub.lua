@@ -2,7 +2,8 @@
 -- Fish Autofarm ve Auto Knock Door'u tek Autofarm sekmesinde birleştirir.
 
 local ENV = getgenv()
-local BASE_URL = "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/"
+-- Sabit commit adresi GitHub raw önbelleğinin eski alt dosyaları döndürmesini engeller.
+local BASE_URL = "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/ce0110b/"
 
 -- Yeniden çalıştırıldığında eski otomasyonları ve pencereyi güvenli biçimde kapat.
 ENV.GPOFishRunning = false
