@@ -7,8 +7,8 @@ local RunService = game:GetService("RunService")
 
 local PLAYER = Players.LocalPlayer
 local CONFIG = {
-    TravelSpeed = 90,
-    MaxStep = 1.5,
+    TravelSpeed = 32,
+    MaxStep = 0.5,
     HoverHeight = 4,
     DoorCooldown = 170,
     RetryDelay = 30,
@@ -148,7 +148,8 @@ local function stepToDoor(door)
     root.Anchored = true
     humanoid.AutoRotate = false
     setStatus("Kapıya küçük adımlarla ilerliyor")
-    local deadline = os.clock() + 45
+    local deadline = os.clock() + math.max(45,
+        (targetPosition - root.Position).Magnitude / 4 + 15)
 
     while active() and root.Parent and door.frame.Parent do
         local dt = RunService.Heartbeat:Wait()
@@ -162,14 +163,18 @@ local function stepToDoor(door)
         facing = CFrame.lookAt(targetPosition, door.frame.Position)
         local offset = targetPosition - root.Position
         local distance = offset.Magnitude
-        if distance <= 0.15 then
+        if distance <= 0.001 then
             root.CFrame = facing
             root.AssemblyLinearVelocity = Vector3.zero
             root.AssemblyAngularVelocity = Vector3.zero
             return true
         end
 
-        local step = math.min(distance, CONFIG.MaxStep, CONFIG.TravelSpeed * dt)
+        -- Eski profiller yüksek değer taşısa da hareket sınırlarını burada uygula.
+        -- Uzun karede geçen süreyi telafi etmek için daha büyük sıçrama yapılmaz.
+        local speed = math.clamp(CONFIG.TravelSpeed, 8, 32)
+        local stepSize = math.clamp(CONFIG.MaxStep, 0.25, 0.5)
+        local step = math.min(distance, stepSize, speed * math.min(dt, 1 / 30))
         local nextPosition = root.Position + offset.Unit * step
         root.CFrame = CFrame.lookAt(nextPosition, door.frame.Position)
         root.AssemblyLinearVelocity = Vector3.zero
@@ -237,12 +242,12 @@ Farm:CreateButton({
     end,
 })
 Settings:CreateSlider({
-    Name = "Hareket hızı", Min = 20, Max = 120, Increment = 2, Default = CONFIG.TravelSpeed,
-    Flag = "TravelSpeed", Callback = function(value) CONFIG.TravelSpeed = value end,
+    Name = "Hareket hızı", Min = 8, Max = 32, Increment = 2, Default = CONFIG.TravelSpeed,
+    Flag = "TravelSpeed", Callback = function(value) CONFIG.TravelSpeed = math.clamp(value, 8, 32) end,
 })
 Settings:CreateSlider({
-    Name = "CFrame adım mesafesi", Min = 0.25, Max = 2, Increment = 0.25, Default = CONFIG.MaxStep,
-    Flag = "DoorStepSize", Callback = function(value) CONFIG.MaxStep = value end,
+    Name = "CFrame adım mesafesi", Min = 0.25, Max = 0.5, Increment = 0.25, Default = CONFIG.MaxStep,
+    Flag = "DoorStepSize", Callback = function(value) CONFIG.MaxStep = math.clamp(value, 0.25, 0.5) end,
 })
 Settings:CreateSlider({
     Name = "Kapı üstü yükseklik", Min = 2, Max = 7, Increment = 0.5, Default = CONFIG.HoverHeight,

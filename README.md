@@ -151,7 +151,7 @@ Tema anahtarları: `Background`, `Sidebar`, `Surface`, `Hover`, `Border`, `Text`
 
 ## GPO örnekleri
 
-Door hareketi her Heartbeat'te en fazla 1.5 stud CFrame adımı kullanır (ayar: 0.25–2 stud); hız hedefi 90 stud/s, gerçek hız FPS ve adım sınırına bağlıdır. Hedef güncellenir, ölüm/durdurma sonrası yeni adım atılmaz ve 45 saniyede ulaşılamayan kapı bırakılır. Bu değişiklik canlı oyunda henüz doğrulanmadı.
+Door hareketi her Heartbeat'te en fazla 0.5 stud CFrame adımı kullanır (ayar: 0.25–0.5 stud); hız hedefi en fazla 32 stud/s, gerçek hız FPS ve adım sınırına bağlıdır. Eski profil değerleri hareket döngüsünde de sınırlandırılır, uzun karelerin süresi telafi edilmez. Hedef güncellenir, ölüm/durdurma sonrası yeni adım atılmaz; zaman aşımı mesafeye göre hesaplanır (en az 45 saniye). Kullanıcı `TP: 58, threshold: 48` hatası bildirdi; bu ayarların oyundaki hatayı giderdiği henüz doğrulanmadı.
 
 `examples/GPOAutofarmHub.lua`, Fish Autofarm ile Spooksville Auto Knock Door'u tek pencerenin `Autofarm` sekmesinde ayrı bölümler olarak birleştirir. `examples/GPOFishHub.lua` ve `examples/GPOAutoKnockDoor.lua` bağımsız çalıştırılabilir; birleşik hub tarafından yüklendiklerinde ortak pencere ve sekmeyi kullanırlar. Her çalışma otomasyonu kapalı başlatır.
 
