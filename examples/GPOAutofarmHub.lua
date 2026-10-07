@@ -3,7 +3,7 @@
 
 local ENV = getgenv()
 -- Sabit commit adresi GitHub raw önbelleğinin eski alt dosyaları döndürmesini engeller.
-local BASE_URL = "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/4a75906d74b2e7c83583c290de114b5ba0cac1dd/"
+local BASE_URL = "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/7386c6e9c435aa388adc8967a76926dff5d8c35f/"
 
 -- Yeniden çalıştırıldığında eski otomasyonları ve pencereyi güvenli biçimde kapat.
 ENV.GPOFishRunning = false
