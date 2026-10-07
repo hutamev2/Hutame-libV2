@@ -7,8 +7,8 @@ local RunService = game:GetService("RunService")
 
 local PLAYER = Players.LocalPlayer
 local CONFIG = {
-    TravelSpeed = 72,
-    MaxStep = 5,
+    TravelSpeed = 90,
+    MaxStep = 1.5,
     HoverHeight = 4,
     DoorCooldown = 170,
     RetryDelay = 30,
@@ -138,18 +138,28 @@ local function canReachPrompt(root, door)
         and (root.Position - door.frame.Position).Magnitude <= door.prompt.MaxActivationDistance
 end
 
--- Büyük tek sıçrama yerine her Heartbeat'te sınırlı mesafe ilerler.
+-- Her Heartbeat'te küçük bir CFrame adımı; gecikmede büyük sıçrama yapılmaz.
 -- Hedef kapının biraz üstüdür; varınca karakter anchor ile havada tutulur.
-local function glideToDoor(door)
+local function stepToDoor(door)
     local model, humanoid, root = character()
     if not model or not humanoid or not root or humanoid.Health <= 0 then return false, "Karakter hazır değil" end
     local targetPosition = door.frame.Position + Vector3.new(0, CONFIG.HoverHeight, 0)
     local facing = CFrame.lookAt(targetPosition, door.frame.Position)
     root.Anchored = true
     humanoid.AutoRotate = false
-    setStatus("Kapıya ilerliyor")
+    setStatus("Kapıya küçük adımlarla ilerliyor")
+    local deadline = os.clock() + 45
 
     while active() and root.Parent and door.frame.Parent do
+        local dt = RunService.Heartbeat:Wait()
+        if not active() or PLAYER.Character ~= model or not root.Parent
+            or humanoid.Health <= 0 or not door.frame.Parent then break end
+        if os.clock() >= deadline then
+            stopMovement()
+            return false, "Kapıya ulaşma süresi doldu"
+        end
+        targetPosition = door.frame.Position + Vector3.new(0, CONFIG.HoverHeight, 0)
+        facing = CFrame.lookAt(targetPosition, door.frame.Position)
         local offset = targetPosition - root.Position
         local distance = offset.Magnitude
         if distance <= 0.15 then
@@ -159,8 +169,7 @@ local function glideToDoor(door)
             return true
         end
 
-        local dt = RunService.Heartbeat:Wait()
-        local step = math.min(distance, CONFIG.MaxStep, CONFIG.TravelSpeed * math.max(dt, 1 / 240))
+        local step = math.min(distance, CONFIG.MaxStep, CONFIG.TravelSpeed * dt)
         local nextPosition = root.Position + offset.Unit * step
         root.CFrame = CFrame.lookAt(nextPosition, door.frame.Position)
         root.AssemblyLinearVelocity = Vector3.zero
@@ -179,11 +188,12 @@ local function knockOnce()
     retryAfter[key] = os.clock() + CONFIG.RetryDelay
     targetLabel:SetValue(string.format("%.0f stud", distance))
 
-    local reached, reason = glideToDoor(door)
+    local reached, reason = stepToDoor(door)
     if not reached then setStatus(reason) return end
     local equipped, equipError = equipBag()
-    if not equipped then setStatus(equipError) return end
-    if not active() or not door.prompt.Parent or not door.prompt.Enabled then return end
+    if not equipped then stopMovement() setStatus(equipError) return end
+    if not active() or not door.prompt.Parent or not door.prompt.Enabled then stopMovement() return end
+    if not canReachPrompt(root, door) then stopMovement() setStatus("Kapı etkileşim mesafesi dışında") return end
 
     setStatus("Kapı çalınıyor")
     local event = door.frame:FindFirstChild("triggerDoor")
@@ -212,7 +222,7 @@ local function farmLoop()
 end
 
 Farm:CreateToggle({
-    Name = "Auto Knock", Description = "Yakındaki uygun kapılara yürür ve etkinliği tetikler.",
+    Name = "Auto Knock", Description = "Kapılara küçük CFrame adımlarıyla gider ve etkinliği tetikler.",
     Default = false, Flag = "AutoKnock",
     Callback = function(value)
         ENV.GPODoorRunning = value
@@ -229,6 +239,10 @@ Farm:CreateButton({
 Settings:CreateSlider({
     Name = "Hareket hızı", Min = 20, Max = 120, Increment = 2, Default = CONFIG.TravelSpeed,
     Flag = "TravelSpeed", Callback = function(value) CONFIG.TravelSpeed = value end,
+})
+Settings:CreateSlider({
+    Name = "CFrame adım mesafesi", Min = 0.25, Max = 2, Increment = 0.25, Default = CONFIG.MaxStep,
+    Flag = "DoorStepSize", Callback = function(value) CONFIG.MaxStep = value end,
 })
 Settings:CreateSlider({
     Name = "Kapı üstü yükseklik", Min = 2, Max = 7, Increment = 0.5, Default = CONFIG.HoverHeight,

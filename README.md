@@ -151,6 +151,8 @@ Tema anahtarları: `Background`, `Sidebar`, `Surface`, `Hover`, `Border`, `Text`
 
 ## GPO örnekleri
 
+Door hareketi her Heartbeat'te en fazla 1.5 stud CFrame adımı kullanır (ayar: 0.25–2 stud); hız hedefi 90 stud/s, gerçek hız FPS ve adım sınırına bağlıdır. Hedef güncellenir, ölüm/durdurma sonrası yeni adım atılmaz ve 45 saniyede ulaşılamayan kapı bırakılır. Bu değişiklik canlı oyunda henüz doğrulanmadı.
+
 `examples/GPOAutofarmHub.lua`, Fish Autofarm ile Spooksville Auto Knock Door'u tek pencerenin `Autofarm` sekmesinde ayrı bölümler olarak birleştirir. `examples/GPOFishHub.lua` ve `examples/GPOAutoKnockDoor.lua` bağımsız çalıştırılabilir; birleşik hub tarafından yüklendiklerinde ortak pencere ve sekmeyi kullanırlar. Her çalışma otomasyonu kapalı başlatır.
 
 Kodlar geliştirmeyi kolaylaştırmak için `CONFIG`, oyun yardımcıları, otomasyon döngüsü ve arayüz bölümlerine ayrılmıştır. Balık örneğinde oltanın kuşanılmış, kapı örneğinde Candy Corn Basket'ın envanterde olması gerekir.
