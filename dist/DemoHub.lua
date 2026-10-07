@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
-local Hutame = { Flags = {}, Version = "1.1.0" }
+local Hutame = { Flags = {}, Version = "1.1.1" }
 local defaults = {
     Background = Color3.fromRGB(16, 17, 19),
     Sidebar = Color3.fromRGB(19, 20, 23),
@@ -38,7 +38,7 @@ end
 local activeTweens = setmetatable({}, { __mode = "k" })
 local function tween(object, props, duration)
     if activeTweens[object] then activeTweens[object]:Cancel() end
-    local animation = TweenService:Create(object, TweenInfo.new(duration or 0.16, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
+    local animation = TweenService:Create(object, TweenInfo.new(duration or 0.18, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), props)
     activeTweens[object] = animation
     animation.Completed:Once(function()
         if activeTweens[object] == animation then activeTweens[object] = nil end
@@ -86,7 +86,7 @@ local function pressFeedback(owner, target)
     connect(owner, target.InputBegan, function(input)
         if owner.Disabled then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            tween(scale, { Scale = 0.975 }, 0.09)
+            tween(scale, { Scale = 0.985 }, 0.1)
         end
     end)
     connect(owner, target.InputEnded, function(input)
@@ -373,27 +373,45 @@ function Tab:Select() self.Window:SelectTab(self) end
 
 local Window = {}
 Window.__index = Window
+function Window:_styleTab(tab)
+    local selected = self.SelectedTab == tab
+    tween(tab.Button, {
+        BackgroundColor3 = (tab._hovered and not selected) and self.Theme.Hover or self.Theme.Surface,
+        BackgroundTransparency = selected and 0.08 or (tab._hovered and 0.3 or 1),
+        TextColor3 = selected and self.Theme.Accent or (tab._hovered and self.Theme.Text or self.Theme.Muted),
+    }, self.AnimationDuration * 0.75)
+    tween(tab.Indicator, {
+        BackgroundTransparency = selected and 0 or 1,
+        Size = UDim2.new(selected and 1 or 0.35, 0, 0, 2),
+    }, self.AnimationDuration)
+end
 function Window:SelectTab(tab)
     assert(tab.Window == self, "Tab belongs to another window")
+    if self._destroyed then return end
     if self.SelectedTab == tab then return end
+    local previous = self.SelectedTab
+    self.SelectedTab = tab
     for _, item in ipairs(self.Tabs) do
         local selected = item == tab
         item.Container.Visible = selected
-        tween(item.Button, { BackgroundTransparency = selected and 0 or 1,
-            TextColor3 = selected and self.Theme.Accent or self.Theme.Muted }, self.AnimationDuration)
-        tween(item.Indicator, { BackgroundTransparency = selected and 0 or 1 }, self.AnimationDuration)
+        self:_styleTab(item)
     end
-    self.SelectedTab = tab
-    tab.Container.GroupTransparency = 0.8
-    tab.Container.Position = UDim2.fromOffset(0, 7)
+    local direction = previous and tab.Button.LayoutOrder < previous.Button.LayoutOrder and -1 or 1
+    tab.Container.GroupTransparency = 0.55
+    tab.Container.Position = UDim2.fromOffset(6 * direction, 0)
     tween(tab.Container, { GroupTransparency = 0, Position = UDim2.fromOffset(0, 0) }, self.AnimationDuration)
 end
 function Window:CreateTab(options)
     if type(options) == "string" then options = { Name = options } end
-    local b = button(self.TabBar, options.Name or "Tab", self.Theme, { AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 28), LayoutOrder = #self.Tabs + 1 })
-    padding(b, 12)
-    local indicator = make("Frame", { BackgroundColor3 = self.Theme.Accent, BackgroundTransparency = 1,
-        BorderSizePixel = 0, Position = UDim2.new(0, 0, 1, -2), Size = UDim2.new(1, 0, 0, 2) }, b)
+    local b = button(self.TabBar, options.Name or "Tab", self.Theme, {
+        AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 32), LayoutOrder = #self.Tabs + 1,
+        BackgroundTransparency = 1, TextColor3 = self.Theme.Muted,
+    })
+    -- Only horizontal padding: vertical padding shifts child coordinates into the text.
+    make("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12) }, b)
+    local indicator = make("Frame", { Name = "SelectionIndicator", BackgroundColor3 = self.Theme.Accent, BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(0.5, 1), BorderSizePixel = 0,
+        Position = UDim2.new(0.5, 0, 1, -1), Size = UDim2.new(0.35, 0, 0, 2) }, b)
     corner(indicator, 2)
     local container = make("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false }, self.Content)
     local page = make("ScrollingFrame", {
@@ -406,6 +424,8 @@ function Window:CreateTab(options)
     local tab = setmetatable({ Window = self, Page = page, Container = container, Button = b, Indicator = indicator, _count = 1 }, Tab)
     table.insert(self.Tabs, tab)
     connect(self, b.Activated, function() self:SelectTab(tab) end)
+    connect(self, b.MouseEnter, function() tab._hovered = true; self:_styleTab(tab) end)
+    connect(self, b.MouseLeave, function() tab._hovered = false; self:_styleTab(tab) end)
     if #self.Tabs == 1 then self:SelectTab(tab) end
     return tab
 end

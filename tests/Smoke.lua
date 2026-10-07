@@ -36,6 +36,24 @@ local ok, result = pcall(function()
     first:Select(); second:Select(); first:Select()
     task.wait(0.2)
     assert(first.Container.Visible and not second.Container.Visible and first.Container.GroupTransparency < 0.01)
+    -- Regression: selection underline must remain below the glyphs, including at reduced scale.
+    for _, scale in {1, 0.7} do
+        window.Scale.Scale = scale
+        task.wait(0.1)
+        local button = first.Button
+        local textBottom = button.AbsolutePosition.Y + (button.AbsoluteSize.Y + button.TextBounds.Y) / 2
+        assert(button.UIPadding.PaddingTop.Offset == 0 and button.UIPadding.PaddingBottom.Offset == 0)
+        assert(first.Indicator.AbsolutePosition.Y > textBottom, "Selection line overlaps tab text")
+        assert(first.Indicator.AbsolutePosition.Y + first.Indicator.AbsoluteSize.Y <= button.AbsolutePosition.Y + button.AbsoluteSize.Y + 1)
+    end
+    window.Scale.Scale = window._targetScale
+    firesignal(second.Button.MouseEnter)
+    second:Select()
+    firesignal(second.Button.MouseLeave)
+    first:Select(); second:Select()
+    task.wait(0.25)
+    assert(second.Indicator.BackgroundTransparency < 0.01 and first.Indicator.BackgroundTransparency > 0.99)
+    assert(second.Button.TextColor3 == window.Theme.Accent, "Hover overwrote selected color")
     window:Notify({ Title = "Test", Duration = 0.5 })
     task.wait(0.8)
     for _, child in window.Notifications:GetChildren() do assert(not child:IsA("Frame"), "Notification did not expire") end

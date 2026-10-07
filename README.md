@@ -1,8 +1,10 @@
-# Hutame UI v1.1
+# Hutame UI v1.1.1
 
 Referanstaki koyu hub arayüzünden esinlenen, Roblox istemcisinde çalışan Luau UI kütüphanesi. Harici paket gerektirmez. Avatar görseli Roblox üzerinden alınır.
 
 Builder Sans / Medium / Bold font ailesi, minimum 12 px yardımcı yazılar ve daha belirgin ikincil metinler kullanılır. Pencere açılış/kapanışında fade + ölçek, sekme geçişlerinde fade + kayma, dropdown açılışında genişleme, butonlarda basma, input odak çizgisinde renk ve bildirimlerde giriş/çıkış animasyonları vardır.
+
+1.1.1: Sekme göstergesinin metnin üstüne taşmasına yol açan dikey padding kaldırıldı. 32 px sekmelerde alt çizgi metinden ayrı durur; seçili arka plan, hover ve çizgi genişliği TweenService ile geçiş yapar. İçerik sekme yönünde yalnızca 6 px kayar. Cubic/Out easing ve hafif basma geri bildirimi kullanılır; yeni etkileşim önceki tween'i mevcut konumunda kesip yeni hedefe devam eder. `AnimationDuration` varsayılan 0.24 saniyedir; sekme hover süresi bunun %75'idir.
 
 ## Madium — hemen çalıştır
 
