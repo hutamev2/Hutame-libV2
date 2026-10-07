@@ -1,5 +1,7 @@
 # Hutame UI v1.2.0
 
+Dokümantasyon sitesi: [hutamev2.github.io/Hutame-libV2](https://hutamev2.github.io/Hutame-libV2/)
+
 Referanstaki koyu hub arayüzünden esinlenen, Roblox istemcisinde çalışan Luau UI kütüphanesi. Harici paket gerektirmez. Avatar görseli Roblox üzerinden alınır.
 
 Builder Sans / Medium / Bold font ailesi, minimum 12 px yardımcı yazılar ve daha belirgin ikincil metinler kullanılır. Pencere açılış/kapanışında fade + ölçek, sekme geçişlerinde fade + kayma, dropdown açılışında genişleme, butonlarda basma, input odak çizgisinde renk ve bildirimlerde giriş/çıkış animasyonları vardır.

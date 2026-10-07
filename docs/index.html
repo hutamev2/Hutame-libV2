@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1018">
+<meta name="description" content="Hutame UI Roblox ve Madium için Luau arayüz kütüphanesi. Kurulum, API ve örnekler.">
+<title>Hutame UI — Dokümantasyon</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"><script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">İçeriğe geç</a>
+<header class="topbar">
+<button class="menu-button" id="menu-button" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
+<a class="brand" href="#baslangic"><span class="brand-mark">H</span><span>Hutame <strong>UI</strong></span><span class="version">v1.2.0</span></a>
+<div class="top-actions"><a href="https://github.com/hutamev2/Hutame-libV2" target="_blank" rel="noopener noreferrer">GitHub ↗</a><button id="theme-button" type="button" aria-label="Temayı değiştir" title="Temayı değiştir">◐</button></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Dokümantasyon menüsü">
+<label class="search-wrap"><span aria-hidden="true">⌕</span><input id="nav-search" type="search" placeholder="Başlık ara..." aria-label="Başlık ara"><kbd>/</kbd></label>
+<nav id="docs-nav">
+<span class="nav-heading">BAŞLANGIÇ</span><a href="#baslangic">Genel bakış</a><a href="#hizli-baslangic">Hızlı başlangıç</a><a href="#kurulum">Kurulum</a>
+<span class="nav-heading">REHBER</span><a href="#pencere">Pencere ve sekmeler</a><a href="#bilesenler">Bileşenler</a><a href="#durum">Durum ve metotlar</a><a href="#profiller">Profiller</a>
+<span class="nav-heading">REFERANS</span><a href="#ornekler">Kod örnekleri</a><a href="#sss">SSS ve ipuçları</a>
+</nav><div class="sidebar-foot"><span class="status-dot"></span> Açık kaynak · Roblox Luau</div>
+</aside><div class="backdrop" id="backdrop"></div>
+<main id="content">
+<section class="hero doc-section" id="baslangic">
+<div class="eyebrow"><span class="status-dot"></span> DOKÜMANTASYON / V1.2.0</div>
+<h1>Hub arayüzünü<br><em>hızla oluştur.</em></h1>
+<p>Hutame UI, Roblox istemcisinde çalışan, tek dosyalık bir Luau arayüz kütüphanesidir. Madium'da uzaktan yükle; Studio'da ModuleScript olarak kullan.</p>
+<div class="hero-actions"><a class="button primary" href="#hizli-baslangic">Başla <span>→</span></a><a class="button secondary" href="https://github.com/hutamev2/Hutame-libV2/blob/main/dist/DemoHub.lua">Demoyu incele ↗</a></div>
+<div class="feature-grid"><div><b>08</b><span>Arayüz bileşeni</span></div><div><b>0</b><span>Harici bağımlılık</span></div><div><b>2</b><span>Çalışma yolu</span></div></div>
+</section>
+<section class="doc-section" id="hizli-baslangic"><div class="section-tag">01 / BAŞLANGIÇ</div><h2>Hızlı başlangıç</h2><p>Madium'da herkese açık dosyayı çekip pencereyi oluştur. Başka bilgisayarda <code>readfile</code>, yerel dosya veya GitHub token'ı gerekmez.</p>
+<div class="code-head"><span>Madium · Luau</span><button class="copy-button" type="button">Kopyala</button></div>
+<pre><code>local Hutame = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"
+))()
+
+local Window = Hutame:CreateWindow({
+    Title = "My Hub",
+    Subtitle = "Welcome to your hub",
+})
+local Tab = Window:CreateTab("Main")
+local Section = Tab:CreateSection("Actions")
+
+Section:CreateButton({
+    Name = "Test",
+    Callback = function()
+        Window:Notify({ Title = "Hazır", Content = "Buton çalıştı!" })
+    end,
+})</code></pre>
+<div class="callout"><strong>Yalnızca demoyu açmak için</strong><code>loadstring(game:HttpGet("https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/DemoHub.lua"))()</code></div>
+</section>
+<section class="doc-section" id="kurulum"><div class="section-tag">02 / KURULUM</div><h2>İki çalışma yolu</h2>
+<div class="card-grid"><article class="info-card"><span class="card-icon">↗</span><h3>Madium</h3><p>Yukarıdaki <code>loadstring(game:HttpGet(...))()</code> örneğini kullan. <code>dist/Hutame.lua</code> sadece kütüphaneyi döndürür; hub pencereni kendi kodun oluşturur.</p></article>
+<article class="info-card"><span class="card-icon">▣</span><h3>Roblox Studio</h3><p><code>src/init.lua</code> içeriğini <code>ReplicatedStorage/Hutame</code> adlı ModuleScript'e koy. Bir LocalScript içinden <code>require</code> ile yükle.</p></article></div>
+<div class="code-head"><span>Studio · LocalScript</span><button class="copy-button" type="button">Kopyala</button></div><pre><code>local Hutame = require(
+    game:GetService("ReplicatedStorage"):WaitForChild("Hutame")
+)
+local Window = Hutame:CreateWindow({ Title = "My Hub" })</code></pre>
+<p class="note">Madium'da <code>gethui()</code> uygun bir Instance döndürürse arayüz oraya eklenir; aksi halde PlayerGui kullanılır. <code>Parent</code> seçeneğiyle hedefi ayrıca belirleyebilirsin.</p></section>
+<section class="doc-section" id="pencere"><div class="section-tag">03 / REHBER</div><h2>Pencere ve sekmeler</h2><p><code>CreateWindow</code> ana arayüzü oluşturur. Sekme ve bölümler içerik hiyerarşisini düzenler; bölüm başlığı daraltılabilir.</p>
+<div class="code-head"><span>Pencere ayarları</span><button class="copy-button" type="button">Kopyala</button></div><pre><code>local Window = Hutame:CreateWindow({
+    Title = "My Hub",
+    Subtitle = "Welcome",
+    HubName = "Hutame Hub",
+    ToggleKey = Enum.KeyCode.RightControl,
+    Size = Vector2.new(660, 440),
+    MinSize = Vector2.new(520, 340),
+    MaxSize = Vector2.new(1280, 900),
+    Resizable = true,
+    AnimationDuration = 0.24,
+    ConfigFolder = "HutameUI/MyHub",
+    Theme = { Accent = Color3.fromRGB(152, 204, 255) },
+})
+
+local Tab = Window:CreateTab("Main")
+local Section = Tab:CreateSection({ Name = "Actions", Collapsed = false })
+Tab:Select()</code></pre>
+<div class="method-grid"><div><code>Window:Show()</code><span>Pencereyi göster</span></div><div><code>Window:Hide()</code><span>Pencereyi gizle</span></div><div><code>Window:Toggle()</code><span>Görünürlüğü değiştir</span></div><div><code>Window:Destroy()</code><span>Arayüzü kaldır</span></div><div><code>Window:SetSearch("volume")</code><span>Kontrolleri ara</span></div><div><code>Window:SetSize(Vector2.new(w, h))</code><span>Boyutu ayarla</span></div><div><code>Window:GetSize()</code><span>Boyutu al</span></div><div><code>Window:SetStatus("Ready")</code><span>Alt durum metni</span></div></div>
+<p class="note">Tema anahtarları: <code>Background</code>, <code>Sidebar</code>, <code>Surface</code>, <code>Hover</code>, <code>Border</code>, <code>Text</code>, <code>Muted</code>, <code>Accent</code>. Tema pencere oluşturulurken verilir.</p></section>
+<section class="doc-section" id="bilesenler"><div class="section-tag">04 / API</div><h2>Bileşenler</h2><p>Tüm bileşenler bir <code>Section</code> üzerinden oluşturulur. <code>?</code> işaretli ayarlar isteğe bağlıdır.</p>
+<div class="table-scroll"><table><thead><tr><th>Metot</th><th>Temel ayarlar</th><th>Kullanım</th></tr></thead><tbody>
+<tr><td><code>CreateButton</code></td><td>Name, Description?, Callback?, Style?, Compact?, AutoLoading?, LoadingText?</td><td>Eylem</td></tr>
+<tr><td><code>CreateToggle</code></td><td>Name, Default?, Flag?, Callback?</td><td>Aç / kapat</td></tr>
+<tr><td><code>CreateSlider</code></td><td>Name, Min?, Max?, Increment?, Default?, Flag?, Callback?</td><td>Sayısal değer</td></tr>
+<tr><td><code>CreateDropdown</code></td><td>Name, Options, Default?, Flag?, Callback?</td><td>Seçenek</td></tr>
+<tr><td><code>CreateInput</code></td><td>Name, Placeholder?, Default?, Flag?, Callback?</td><td>Metin</td></tr>
+<tr><td><code>CreateKeybind</code></td><td>Name, Default?, Flag?, Callback?, Changed?, AllowWhenHidden?</td><td>Kısayol</td></tr>
+<tr><td><code>CreateLabel</code></td><td>Name, Text?</td><td>Bilgi</td></tr>
+<tr><td><code>CreateDivider</code></td><td>Yok</td><td>Ayraç</td></tr>
+</tbody></table></div><p class="note">Kontroller ayrıca <code>Description</code>, <code>Tooltip</code>, <code>Disabled</code> ve <code>Persist</code> ayarlarını destekler. <code>Flag</code> pencere içinde benzersiz olmalıdır.</p></section>
+<section class="doc-section" id="durum"><div class="section-tag">05 / API</div><h2>Durum ve metotlar</h2>
+<div class="method-grid"><div><code>control:SetText(text)</code><span>Başlığı değiştir</span></div><div><code>control:SetVisible(bool)</code><span>Görünürlüğü ayarla</span></div><div><code>control:SetDisabled(bool)</code><span>Etkileşimi kilitle</span></div><div><code>control:SetLoading(bool)</code><span>Yüklenme durumu</span></div><div><code>control:SetTooltip(text)</code><span>Yardım metni</span></div><div><code>control:IsDisabled()</code><span>Kilit durumunu al</span></div><div><code>control:Destroy()</code><span>Kontrolü kaldır</span></div><div><code>control:SetValue(value, silent?)</code><span>Değeri güncelle</span></div><div><code>control:GetValue()</code><span>Değeri al</span></div><div><code>dropdown:SetOptions(list)</code><span>Seçenekleri yenile</span></div><div><code>section:SetCollapsed(bool)</code><span>Bölümü daralt / aç</span></div><div><code>section:Toggle()</code><span>Bölüm durumunu değiştir</span></div></div>
+<div class="callout"><strong>Callback davranışı</strong><span><code>SetValue(value, true)</code> callback'i çağırmaz. Oluşturma sırasında callback çalışmaz. Input değeri odak kaybolduğunda, slider ise sürükleme boyunca callback üretir.</span></div></section>
+<section class="doc-section" id="profiller"><div class="section-tag">06 / API</div><h2>Profiller ve kayıt</h2><p><code>Flag</code> tanımlı toggle, slider, dropdown, input ve keybind değerleri profillere eklenir. <code>Persist = false</code> kontrolü dışarıda bırakır.</p>
+<div class="code-head"><span>Config API</span><button class="copy-button" type="button">Kopyala</button></div><pre><code>Window:CreateConfigTab()             -- Hazır profil arayüzü
+local json = Window:ExportConfig()   -- JSON string
+Window:ImportConfig(json, true)      -- true: callback'leri atla
+Window:SaveConfig("Default")          -- Mevcut dosyayı ezmez
+Window:SaveConfig("Default", true)    -- Bilerek üzerine yaz
+Window:LoadConfig("Default")
+local names = Window:ListConfigs()
+Window:DeleteConfig("Default")
+Window:ResetConfig()</code></pre>
+<p class="note">Dosya profilleri Madium'un dosya API'lerini kullanır. Studio'da <code>ExportConfig</code> / <code>ImportConfig</code> kullanılabilir; dosya işlemleri yoktur. Profil adı 1–48 karakter ve yalnız harf, rakam, alt çizgi veya tire içermelidir.</p></section>
+<section class="doc-section" id="ornekler"><div class="section-tag">07 / ÖRNEKLER</div><h2>Gerçek bir hub parçası</h2><p>Aşağıdaki örnek bir ayarlar sekmesi, farklı bileşenler ve bildirim içerir.</p>
+<div class="code-head"><span>Luau · Section API</span><button class="copy-button" type="button">Kopyala</button></div><pre><code>local Settings = Window:CreateTab("Settings")
+local General = Settings:CreateSection("General")
+
+General:CreateToggle({
+    Name = "Auto collect", Default = false, Flag = "AutoCollect",
+    Description = "Toplama özelliğini aç",
+    Callback = function(enabled) print("Enabled:", enabled) end,
+})
+General:CreateSlider({
+    Name = "Speed", Min = 0, Max = 100, Increment = 5,
+    Default = 25, Flag = "Speed",
+    Callback = function(value) print("Speed:", value) end,
+})
+General:CreateDropdown({
+    Name = "Mode", Options = { "Safe", "Fast" },
+    Default = "Safe", Flag = "Mode",
+})
+General:CreateButton({
+    Name = "Save", Style = "Primary", Compact = true,
+    Tooltip = "Ayarları profile yazar",
+    Callback = function()
+        local ok, result = Window:SaveConfig("Default", true)
+        Window:Notify({
+            Title = ok and "Kaydedildi" or "Hata",
+            Content = tostring(result), Duration = 4,
+        })
+    end,
+})</code></pre></section>
+<section class="doc-section" id="sss"><div class="section-tag">08 / YARDIM</div><h2>SSS ve ipuçları</h2>
+<details><summary>Başka bilgisayarda readfile gerekir mi?</summary><p>Hayır. Herkese açık <code>raw.githubusercontent.com</code> bağlantısı doğrudan indirilir; kullanıcı adı veya token gerekmez.</p></details>
+<details><summary>Hub neden kendiliğinden bir işlem yapmıyor?</summary><p>Kütüphane yalnızca arayüz ve durum yönetimini sağlar. Oyun işlevlerini kendi <code>Callback</code> koduna bağlamalısın.</p></details>
+<details><summary>Bir ayarı nasıl kalıcı yaparım?</summary><p>Kontrole benzersiz bir <code>Flag</code> ver, sonra <code>SaveConfig</code> veya hazır <code>CreateConfigTab</code> kullan. Studio'da JSON dışa/içe aktar.</p></details>
+<details><summary>Güncelleme hub'ımı etkiler mi?</summary><p><code>main</code> bağlantısı en güncel sürümü çeker. Sabit sürüm için URL'deki <code>main</code> yerine test ettiğin commit SHA'sını kullan.</p></details>
+<details><summary>Mobil destek var mı?</summary><p>Ekrana göre ölçekleme ve dokunmatik etkileşimler bulunur. Ayrı bir mobil yerleşim henüz yoktur.</p></details>
+<div class="bottom-cta"><div><strong>Kaynak kodu gör</strong><span>Örnekler, demo ve testler GitHub deposunda.</span></div><a class="button secondary" href="https://github.com/hutamev2/Hutame-libV2">GitHub'a git ↗</a></div></section>
+<footer>© Hutame UI · <a href="https://github.com/hutamev2/Hutame-libV2">Kaynak kod</a> · <a href="#baslangic">Başa dön ↑</a></footer>
+</main></div></body></html>
