@@ -23,23 +23,28 @@ local generation = ENV.GPOFishGeneration
 ENV.GPOFishRunning = false
 if ENV.GPOFishWindow then pcall(function() ENV.GPOFishWindow:Destroy() end) end
 
-local Hutame = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"
-))()
-
-local Window = Hutame:CreateWindow({
-    Title = "GPO Fishing",
-    Subtitle = "Fish Autofarm",
-    HubName = "Hutame",
-    ToggleKey = Enum.KeyCode.End,
-    ConfigFolder = "HutameUI/GPOFishing",
-})
+local sharedWindow = ENV.GPOAutofarmSharedWindow
+local sharedTab = ENV.GPOAutofarmSharedTab
+local ownsWindow = sharedWindow == nil
+local Window = sharedWindow
+if ownsWindow then
+    local Hutame = loadstring(game:HttpGet(
+        "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"
+    ))()
+    Window = Hutame:CreateWindow({
+        Title = "GPO Fishing",
+        Subtitle = "Fish Autofarm",
+        HubName = "Hutame",
+        ToggleKey = Enum.KeyCode.End,
+        ConfigFolder = "HutameUI/GPOFishing",
+    })
+end
 ENV.GPOFishWindow = Window
 
-local Main = Window:CreateTab("Fishing")
-local Farm = Main:CreateSection("Otomasyon")
-local Bait = Main:CreateSection("Yem")
-local Status = Main:CreateSection("Durum")
+local Main = sharedTab or Window:CreateTab("Fishing")
+local Farm = Main:CreateSection("Fish Autofarm")
+local Bait = Main:CreateSection("Fish Ayarları")
+local Status = Main:CreateSection("Fish Durumu")
 
 local statusLabel = Status:CreateLabel({Name = "Durum", Text = "Hazır"})
 local statsLabel = Status:CreateLabel({Name = "Sayaç", Text = "Başarılı: 0 | Başarısız: 0"})
@@ -216,9 +221,11 @@ Bait:CreateButton({
     end,
 })
 
-Window:CreateConfigTab()
+if ownsWindow then Window:CreateConfigTab() end
 updateStats()
 task.spawn(farmLoop)
-Window:Notify({Title = "GPO Fishing", Content = "Hazır. Oltayı ve bait'i kuşan."})
+if ownsWindow then
+    Window:Notify({Title = "GPO Fishing", Content = "Hazır. Oltayı ve bait'i kuşan."})
+end
 
 return {loaded = true, generation = generation}

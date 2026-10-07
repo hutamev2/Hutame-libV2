@@ -151,7 +151,7 @@ Tema anahtarları: `Background`, `Sidebar`, `Surface`, `Hover`, `Border`, `Text`
 
 ## GPO örnekleri
 
-`examples/GPOFishHub.lua`, otomatik balık tutma ve Common Fish Bait stok yönetimini; `examples/GPOAutoKnockDoor.lua` ise Spooksville kapı etkinliğini gösterir. İki örnek de Hutame-libV2 arayüzünü public `main` adresinden yükler, tekrar çalıştırıldığında eski penceresini kapatır ve otomasyonu kapalı başlatır.
+`examples/GPOAutofarmHub.lua`, Fish Autofarm ile Spooksville Auto Knock Door'u tek pencerenin `Autofarm` sekmesinde ayrı bölümler olarak birleştirir. `examples/GPOFishHub.lua` ve `examples/GPOAutoKnockDoor.lua` bağımsız çalıştırılabilir; birleşik hub tarafından yüklendiklerinde ortak pencere ve sekmeyi kullanırlar. Her çalışma otomasyonu kapalı başlatır.
 
 Kodlar geliştirmeyi kolaylaştırmak için `CONFIG`, oyun yardımcıları, otomasyon döngüsü ve arayüz bölümlerine ayrılmıştır. Balık örneğinde oltanın kuşanılmış, kapı örneğinde Candy Corn Basket'ın envanterde olması gerekir.
 

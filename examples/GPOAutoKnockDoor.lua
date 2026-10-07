@@ -19,22 +19,28 @@ local generation = ENV.GPODoorGeneration
 ENV.GPODoorRunning = false
 if ENV.GPODoorWindow then pcall(function() ENV.GPODoorWindow:Destroy() end) end
 
-local Hutame = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"
-))()
-local Window = Hutame:CreateWindow({
-    Title = "Spooksville",
-    Subtitle = "Auto Knock Door",
-    HubName = "Hutame",
-    ToggleKey = Enum.KeyCode.End,
-    ConfigFolder = "HutameUI/GPOAutoKnock",
-})
+local sharedWindow = ENV.GPOAutofarmSharedWindow
+local sharedTab = ENV.GPOAutofarmSharedTab
+local ownsWindow = sharedWindow == nil
+local Window = sharedWindow
+if ownsWindow then
+    local Hutame = loadstring(game:HttpGet(
+        "https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"
+    ))()
+    Window = Hutame:CreateWindow({
+        Title = "Spooksville",
+        Subtitle = "Auto Knock Door",
+        HubName = "Hutame",
+        ToggleKey = Enum.KeyCode.End,
+        ConfigFolder = "HutameUI/GPOAutoKnock",
+    })
+end
 ENV.GPODoorWindow = Window
 
-local Main = Window:CreateTab("Door Farm")
-local Farm = Main:CreateSection("Otomasyon")
-local Settings = Main:CreateSection("Ayarlar")
-local Status = Main:CreateSection("Durum")
+local Main = sharedTab or Window:CreateTab("Door Farm")
+local Farm = Main:CreateSection("Auto Knock Door")
+local Settings = Main:CreateSection("Door Ayarları")
+local Status = Main:CreateSection("Door Durumu")
 local statusLabel = Status:CreateLabel({Name = "Durum", Text = "Hazır"})
 local targetLabel = Status:CreateLabel({Name = "Hedef", Text = "-"})
 local countLabel = Status:CreateLabel({Name = "Başarılı kapı", Text = "0"})
@@ -268,7 +274,7 @@ Settings:CreateSlider({
     Flag = "MaxDistance", Callback = function(value) CONFIG.MaxDistance = value end,
 })
 
-Window:CreateConfigTab()
+if ownsWindow then Window:CreateConfigTab() end
 setStatus("Hazır — " .. tostring(#scanDoors()) .. " etkin kapı")
 task.spawn(farmLoop)
 
