@@ -1,0 +1,10 @@
+build/
+work/
+*.zip
+*.rbxlx.lock
+*.rbxl.lock
+.env
+.env.*
+*.token
+*token.txt
+github-token.txt

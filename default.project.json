@@ -1,0 +1,10 @@
+{
+  "name": "Hutame UI Demo",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": { "Hutame": { "$path": "src" } },
+    "StarterPlayer": {
+      "StarterPlayerScripts": { "DemoHub": { "$path": "examples/DemoHub.client.lua" } }
+    }
+  }
+}
