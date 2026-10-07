@@ -3,15 +3,16 @@
 
 local ENV = getgenv()
 local Players = game:GetService("Players")
-local PathfindingService = game:GetService("PathfindingService")
+local RunService = game:GetService("RunService")
 
 local PLAYER = Players.LocalPlayer
 local CONFIG = {
-    WalkSpeed = 16,
+    TravelSpeed = 72,
+    MaxStep = 5,
+    HoverHeight = 4,
     DoorCooldown = 170,
     RetryDelay = 30,
     MaxDistance = 500,
-    RouteAttempts = 4,
 }
 
 ENV.GPODoorGeneration = (ENV.GPODoorGeneration or 0) + 1
@@ -50,7 +51,7 @@ local retryAfter = {}
 local completed = 0
 
 local function active()
-    return ENV.GPODoorRunning and ENV.GPODoorGeneration == generation
+    return ENV.GPODoorRunning and ENV.GPODoorGeneration == generation and not Window._destroyed
 end
 
 local function setStatus(text)
@@ -65,7 +66,15 @@ end
 
 local function stopMovement()
     local _, humanoid, root = character()
-    if humanoid and root then humanoid:MoveTo(root.Position) end
+    if root then
+        root.Anchored = false
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+    end
+    if humanoid then
+        humanoid.AutoRotate = true
+        if root then humanoid:MoveTo(root.Position) end
+    end
 end
 
 local function findBag(container)
@@ -124,101 +133,53 @@ local function nearestDoor(root)
     return best, bestDistance
 end
 
-local function waitUntilFree(root)
-    local deadline = os.clock() + 25
-    while active() and root.Parent and root.Anchored and os.clock() < deadline do
-        setStatus("Şeker animasyonu bekleniyor")
-        task.wait(0.1)
-    end
-    return active() and root.Parent and not root.Anchored
-end
-
 local function canReachPrompt(root, door)
     return door.frame.Parent and door.prompt.Parent
-        and (root.Position - door.frame.Position).Magnitude <= math.max(2, door.prompt.MaxActivationDistance - 1)
+        and (root.Position - door.frame.Position).Magnitude <= door.prompt.MaxActivationDistance
 end
 
--- Kapının iki yüzünü dener; geçerli zemini ve en kısa başarılı rotayı seçer.
-local function buildRoute(root, model, door)
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Exclude
-    params.FilterDescendantsInstances = {model}
-    params.RespectCanCollide = true
-    local best, bestLength
-    local offset = math.clamp(door.prompt.MaxActivationDistance - 3, 3, 7)
-
-    for _, sign in ipairs({1, -1}) do
-        local sample = door.frame.Position + door.frame.CFrame.LookVector * offset * sign
-        local ground = workspace:Raycast(sample + Vector3.new(0, 5, 0), Vector3.new(0, -18, 0), params)
-        if ground and ground.Normal.Y > 0.5 then
-            local target = ground.Position + Vector3.new(0, 2, 0)
-            local path = PathfindingService:CreatePath({
-                AgentRadius = 2.5, AgentHeight = 5, AgentCanJump = true, WaypointSpacing = 3,
-            })
-            local ok = pcall(path.ComputeAsync, path, root.Position, target)
-            if ok and path.Status == Enum.PathStatus.Success then
-                local points, length, previous = path:GetWaypoints(), 0, root.Position
-                for _, point in ipairs(points) do length += (point.Position - previous).Magnitude previous = point.Position end
-                if not bestLength or length < bestLength then best, bestLength = {path = path, points = points}, length end
-            end
-        end
-    end
-    return best
-end
-
-local function walkToDoor(door)
+-- Büyük tek sıçrama yerine her Heartbeat'te sınırlı mesafe ilerler.
+-- Hedef kapının biraz üstüdür; varınca karakter anchor ile havada tutulur.
+local function glideToDoor(door)
     local model, humanoid, root = character()
     if not model or not humanoid or not root or humanoid.Health <= 0 then return false, "Karakter hazır değil" end
-    humanoid.WalkSpeed = CONFIG.WalkSpeed
+    local targetPosition = door.frame.Position + Vector3.new(0, CONFIG.HoverHeight, 0)
+    local facing = CFrame.lookAt(targetPosition, door.frame.Position)
+    root.Anchored = true
+    humanoid.AutoRotate = false
+    setStatus("Kapıya ilerliyor")
 
-    for attempt = 1, CONFIG.RouteAttempts do
-        if not waitUntilFree(root) then return false, "Durduruldu" end
-        if canReachPrompt(root, door) then stopMovement() return true end
-        setStatus(attempt == 1 and "Yol hesaplanıyor" or "Rota yeniden hesaplanıyor")
-        local route = buildRoute(root, model, door)
-        if route then
-            local blocked, waypointIndex = false, 1
-            local connection = route.path.Blocked:Connect(function(index)
-                if index >= waypointIndex then blocked = true end
-            end)
-
-            for index, waypoint in ipairs(route.points) do
-                waypointIndex = index
-                if not active() or blocked or canReachPrompt(root, door) then break end
-                if waypoint.Action == Enum.PathWaypointAction.Jump then humanoid.Jump = true end
-                humanoid:MoveTo(waypoint.Position)
-                setStatus("Kapıya yürüyor")
-                local lastDistance = math.huge
-                local lastProgress = os.clock()
-                repeat
-                    task.wait(0.05)
-                    local delta = root.Position - waypoint.Position
-                    local distance = Vector2.new(delta.X, delta.Z).Magnitude
-                    if distance < lastDistance - 0.4 then lastDistance, lastProgress = distance, os.clock() end
-                    if os.clock() - lastProgress > 4 then blocked = true end
-                until not active() or blocked or distance <= 2 or canReachPrompt(root, door)
-            end
-            connection:Disconnect()
-            stopMovement()
-            if canReachPrompt(root, door) then return true end
+    while active() and root.Parent and door.frame.Parent do
+        local offset = targetPosition - root.Position
+        local distance = offset.Magnitude
+        if distance <= 0.15 then
+            root.CFrame = facing
+            root.AssemblyLinearVelocity = Vector3.zero
+            root.AssemblyAngularVelocity = Vector3.zero
+            return true
         end
-        task.wait(0.15)
+
+        local dt = RunService.Heartbeat:Wait()
+        local step = math.min(distance, CONFIG.MaxStep, CONFIG.TravelSpeed * math.max(dt, 1 / 240))
+        local nextPosition = root.Position + offset.Unit * step
+        root.CFrame = CFrame.lookAt(nextPosition, door.frame.Position)
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
     end
-    return false, "Ulaşılabilir rota bulunamadı"
+    stopMovement()
+    return false, "Hedef kapı kayboldu veya farm durduruldu"
 end
 
 local function knockOnce()
     local model, humanoid, root = character()
     if not model or not humanoid or not root or humanoid.Health <= 0 then setStatus("Karakter bekleniyor") return end
-    if root.Anchored then setStatus("Şeker animasyonu bekleniyor") return end
-
     local door, distance = nearestDoor(root)
     if not door then setStatus("Uygun kapı bekleniyor") return end
     local key = doorKey(door)
     retryAfter[key] = os.clock() + CONFIG.RetryDelay
     targetLabel:SetValue(string.format("%.0f stud", distance))
 
-    local reached, reason = walkToDoor(door)
+    local reached, reason = glideToDoor(door)
     if not reached then setStatus(reason) return end
     local equipped, equipError = equipBag()
     if not equipped then setStatus(equipError) return end
@@ -233,9 +194,8 @@ local function knockOnce()
     completed += 1
     countLabel:SetValue(tostring(completed))
 
-    -- Oyun şekeri verirken karakteri anchor'lar; serbest kalmadan yeni rota başlatma.
-    local _, _, currentRoot = character()
-    if currentRoot then waitUntilFree(currentRoot) end
+    -- Kapının üstünde kısa süre sabit kal; sonraki hedefe yine kademeli hareket et.
+    task.wait(1.5)
 end
 
 local function farmLoop()
@@ -245,6 +205,7 @@ local function farmLoop()
             if not ok then stopMovement() setStatus("Hata atlandı: " .. tostring(err)) end
             task.wait(1)
         else
+            stopMovement()
             task.wait(0.2)
         end
     end
@@ -266,8 +227,12 @@ Farm:CreateButton({
     end,
 })
 Settings:CreateSlider({
-    Name = "Yürüme hızı", Min = 6, Max = 30, Increment = 1, Default = CONFIG.WalkSpeed,
-    Flag = "WalkSpeed", Callback = function(value) CONFIG.WalkSpeed = value end,
+    Name = "Hareket hızı", Min = 20, Max = 120, Increment = 2, Default = CONFIG.TravelSpeed,
+    Flag = "TravelSpeed", Callback = function(value) CONFIG.TravelSpeed = value end,
+})
+Settings:CreateSlider({
+    Name = "Kapı üstü yükseklik", Min = 2, Max = 7, Increment = 0.5, Default = CONFIG.HoverHeight,
+    Flag = "HoverHeight", Callback = function(value) CONFIG.HoverHeight = value end,
 })
 Settings:CreateSlider({
     Name = "Maksimum mesafe", Min = 100, Max = 1000, Increment = 50, Default = CONFIG.MaxDistance,
