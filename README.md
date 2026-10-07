@@ -8,14 +8,14 @@ Builder Sans / Medium / Bold font ailesi, minimum 12 px yardımcı yazılar ve d
 
 `dist/Hutame.lua` tek dosyalık kütüphanedir ve çalıştırılınca `Hutame` tablosunu döndürür. `dist/DemoHub.lua` kütüphaneyi içerir ve demo arayüzü açar. `node scripts/build.mjs` ile ikisini kaynaklardan yeniden üretin.
 
-Dosyaları Madium çalışma alanındaki `hutame/` klasörüne kopyaladıktan sonra:
+Repo herkese açıktır. Başka bilgisayarlarda token veya yerel dosya gerektirmeden çalıştırın:
 
 ```lua
 -- Tam demo:
-loadstring(readfile("hutame/DemoHub.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/DemoHub.lua"))()
 
 -- Kendi hub kodun için yalnızca kütüphane:
-local Hutame = loadstring(readfile("hutame/Hutame.lua"))()
+local Hutame = loadstring(game:HttpGet("https://raw.githubusercontent.com/hutamev2/Hutame-libV2/main/dist/Hutame.lua"))()
 local Window = Hutame:CreateWindow({
     Title = "My Hub",
     Font = Enum.Font.BuilderSans,
@@ -27,18 +27,11 @@ local Window = Hutame:CreateWindow({
 
 Madium'da `gethui()` geçerli Instance döndürürse arayüz oraya eklenir; aksi durumda PlayerGui kullanılır. `Parent` seçeneği bunu geçersiz kılar. Aynı demo tekrar çalıştırıldığında yalnızca önceki Hutame demosu temizlenir.
 
-## GitHub private repo
+## GitHub dağıtımı
 
-Private repodaki kaynak, oturum açılmadan sıradan bir raw URL ile indirilemez. `examples/LoadPrivate.lua`, GitHub Contents API üzerinden `request` ile kimlik doğrulayıp kodu `loadstring` ile çalıştırır. [GitHub Contents API](https://docs.github.com/en/rest/repos/contents#get-repository-content) bu okuma için yalnızca ilgili repoya ait **Contents: read** izni gerektirir.
+Repo: [hutamev2/Hutame-libV2](https://github.com/hutamev2/Hutame-libV2) — public. `dist/Hutame.lua` yalnız kütüphaneyi döndürür; pencereyi kendi hub kodunuzda `CreateWindow` ile oluşturun. `dist/DemoHub.lua` ise örnek arayüzü doğrudan açar.
 
-Repo: [hutamev2/Hutame-libV2](https://github.com/hutamev2/Hutame-libV2) — private. Loader varsayılan olarak bu repoyu kullanır. Sadece kişisel kullanım için, o repoyla sınırlı okuma tokenını Madium çalışma alanındaki `hutame/github-token.txt` dosyasına yerel olarak koyun. Tokenı koda, Git deposuna veya dağıtılan huba gömmeyin. Alternatif olarak kendi oturumunuzda `getgenv().HUTAME_GITHUB_TOKEN` sağlayabilirsiniz. Windows Git Credential Manager'daki token oyun istemcisine otomatik aktarılmaz.
-
-```lua
-local Hutame = loadstring(readfile("hutame/LoadPrivate.lua"))()
-local Window = Hutame:CreateWindow({ Title = "My Hub" })
-```
-
-Kişisel GitHub tokenı dağıtılan bir hub için uygun değildir. Başkalarının token kullanmadan yüklemesini istiyorsanız, private kaynak deponun önüne ayrı bir dağıtım servisi veya herkese açık bir yayın dosyası gerekir. Bu sürüm bunları yayımlamaz.
+`main` bağlantıları güncel sürümü indirir. Sabit sürüm isteyen hub'lar URL'deki `main` yerine test ettikleri commit SHA'sını kullanabilir. `examples/LoadPublic.lua` hata denetimli yükleme örneğidir. Eski `examples/LoadPrivate.lua` yalnız private fork'lar için arşivlenmiş alternatiftir; bu repo için kullanılmaz.
 
 Madium API referansı: [loadstring, request ve gethui belgeleri](https://getmadium.net/docs/?page=README).
 
@@ -48,7 +41,7 @@ Roblox Studio'da `ReplicatedStorage` içine `Hutame` adında bir ModuleScript ol
 
 Rojo kullananlar `rojo build default.project.json -o build/DemoHub.rbxlx` ile örnek yeri oluşturabilir veya `rojo serve` ile Studio'ya bağlayabilir. Hazır `build/DemoHub.rbxlx` dosyasını Studio'da açıp Play'e basabilirsiniz. `build/Hutame.rbxmx` yalnızca kütüphanedir; ReplicatedStorage'a eklenebilir.
 
-Kaynak ve örnekler Luau derleyicisiyle, Studio çıktıları Rojo ile kontrol edilir. Madium istemcisinde çalışan `tests/Smoke.lua`, değerleri, callback'leri, hızlı animasyon geçişlerini, bildirimlerin kaldırılmasını ve bağlantı temizliğini doğrular. Private GitHub indirmesi geçerli oturum ve yüklenmiş repo gerektirir; bu bağlantı henüz uçtan uca doğrulanmadı.
+Kaynak ve örnekler Luau derleyicisiyle, Studio çıktıları Rojo ile kontrol edilir. Madium istemcisinde çalışan `tests/Smoke.lua`, değerleri, callback'leri, hızlı animasyon geçişlerini, bildirimlerin kaldırılmasını ve bağlantı temizliğini doğrular.
 
 Standart Studio kullanımı `require` üzerindendir; Studio yolu Madium fonksiyonlarına bağımlı değildir.
 
